@@ -1,4 +1,5 @@
 let app = new PIXI.Application(800, 800, { antialias: true, backgroundColor: 0xF3F3F3 });
+app.render();
 document.body.appendChild(app.view);
 
 
@@ -19,6 +20,7 @@ class KlElement extends PIXI.Container {
     
     this._image = new PIXI.Container();
     this._maskShape = new PIXI.Sprite(texture);
+    this._alphaFilter = new PIXI.filters.AlphaFilter();
     
     // set shape dimensions
     this._maskShape.width = shapeSize;
@@ -40,8 +42,12 @@ class KlElement extends PIXI.Container {
     // Set the mask
     this._image.mask = this._maskShape;
 
+    // Set the filters
+    this.filters = [this._alphaFilter];
+
     // Set interactive behaviours
-    this._maskShape.interactive = true;
+    // this.interactive = true;
+    this._image.interactive = true;
   } 
 
   // ------------------------------------------------------------------------------------
@@ -52,6 +58,16 @@ class KlElement extends PIXI.Container {
 
   get rotation () {
     return this._maskShape.rotation = 0;
+  }
+
+  set alpha (value) {
+    if(this._alphaFilter) {
+      this._alphaFilter.alpha = value;
+    }
+  }
+
+  get alpha () {
+    return this._alphaFilter.alpha;
   }
 }
 
@@ -87,26 +103,24 @@ shapes[3].y = shapes[1].y + shapes[1].height + spacer;
 let shapeOver = function (shapePos) {
   for (let i = 0; i < shapes.length; i++) {
     if(i !== shapePos) {
-      shapes[i].filters[0].blur = 50;
+      shapes[i].alpha = .5;
     }
   }  
 };
 
 let mouseOut = function () {
   for (let i = 0; i < shapes.length; i++) {
-      shapes[i].filters[0].blur = 0;
+      shapes[i].alpha = 1;
   }  
 };
 
 for (let i = 0; i < shapes.length; i++) {
-  shapes[i].interactive = true;
-  shapes[i].filters = [new PIXI.filters.BlurFilter(0, 20)];
   
-  shapes[i].mouseover = function (mouseData) {
+  shapes[i]._image.mouseover = function (mouseData) {
     shapeOver(i);
   };
   
-  shapes[i].mouseout = mouseOut;
+  shapes[i]._image.mouseout = mouseOut;
   
   app.stage.addChild(shapes[i]);
 }
